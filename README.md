@@ -1,2 +1,2 @@
 # PantryParserAPI
-The backend for the Pantry Parser Application
+The backend for [Pantry Parser](https://github.com/Issier/PantryParser)
