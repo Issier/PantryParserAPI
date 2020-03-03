@@ -1,12 +1,13 @@
 import os
 from flask import Flask, request
 from flask_restful import Resource, Api
-import requests
+from simple_cache import SimpleCache
 
 app = Flask(__name__)
 api = Api(app)
 
-cache = {}
+recipe_query_cache = SimpleCache()
+recipe_cache = SimpleCache()
 
 class RecipeByIngredientSimpleCache(Resource):
     """Returns recipes based on provided ingredients using the Spoonacular API, 
@@ -20,14 +21,29 @@ class RecipeByIngredientSimpleCache(Resource):
             ingredients = frozenset({ingr for ingr in request.args['ingredients'].split(',')})
         else: 
             return {}
-        if cache.get(ingredients):
-            return cache[ingredients]
-        else:
-            recipes = requests.get('https://api.spoonacular.com/recipes/findByIngredients', params={'ingredients': ingredients, 'apiKey': self.key}).json()
-            cache[ingredients] = recipes
-            return recipes
+        return recipe_query_cache.get_resource(
+            'https://api.spoonacular.com/recipes/findByIngredients',
+            ingredients, 
+            {'ingredients': request.args['ingredients'], 'apiKey': self.key}
+        )
 
-api.add_resource(RecipeByIngredientSimpleCache, '/')
+
+class RecipeById(Resource):
+    """Returns information about a specific ingredient based on its ID"""
+
+    def __init__(self):
+        self.key = os.environ['SPOON_API_KEY']
+
+    def get(self, recipe_id):
+        return recipe_cache.get_resource(
+            f"https://api.spoonacular.com/recipes/{recipe_id}/information", 
+            recipe_id, 
+            {'apiKey': self.key}
+        )
+        
+
+api.add_resource(RecipeByIngredientSimpleCache, '/api/v1/getRecipes')
+api.add_resource(RecipeById, '/api/v1/getRecipes/<int:recipe_id>')
 
 if __name__ == '__main__':
     app.run()
