@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/Issier/PantryParserAPI/dao"
 	"github.com/Issier/PantryParserAPI/models"
@@ -12,7 +13,11 @@ import (
 func CookBookRootHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		json.NewEncoder(w).Encode(dao.GetCookbook())
+		if len(r.URL.Query().Get("ingredients")) > 0 {
+			cookBookGetRecipeByIngredients(w, r)
+		} else {
+			json.NewEncoder(w).Encode(dao.GetCookbook())
+		}
 	}
 }
 
@@ -35,6 +40,24 @@ func CookBookGetRecipeHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		recipe := dao.GetRecipe(r.URL.Path[len("/recipes/"):])
 		json.NewEncoder(w).Encode(recipe)
+	}
+}
+
+// CookBookGetRecipeByIngredients returns a list of recipes from Cookbook that match with requested ingredients
+func cookBookGetRecipeByIngredients(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		ingredients := r.URL.Query().Get("ingredients")
+		recipesIncludingContent := []models.Recipe{}
+		cookBook := dao.GetCookbook()
+		for _, recipe := range cookBook {
+			for _, ingredient := range recipe.Ingredients {
+				if strings.Contains(ingredients, ingredient.Name) {
+					recipesIncludingContent = append(recipesIncludingContent, recipe)
+				}
+			}
+		}
+		json.NewEncoder(w).Encode(recipesIncludingContent)
 	}
 }
 
