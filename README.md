@@ -6,8 +6,8 @@ The backend for [Pantry Parser](https://github.com/Issier/PantryParser)
 ### GET: /recipes
 Returns all recipes in current Cookbook
 
-## GET: /recipes?ingredients={list}
-Returns recipes matching the provided ingredients where list is a comma seperated list of ingredients
+### GET: /recipes?ingredients={list}
+Returns recipes matching the provided ingredients where list is a comma seperated list of ingredients. Return values are grouped by number of matching ingredients
 
 ### POST: /recipes/add
 Stores recipe provided in POST body
