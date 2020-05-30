@@ -11,5 +11,5 @@ func main() {
 	http.HandleFunc("/recipes/add", controllers.CookBookAddHandler)
 	http.HandleFunc("/recipes/", controllers.CookBookGetRecipeHandler)
 
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(":8080", nil)
 }
