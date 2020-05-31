@@ -14,3 +14,6 @@ Stores recipe provided in POST body
 
 ### GET: /recipes/{recipe name}
 Returns individual recipe by name, returning an empty recipe if not found in cookbook
+
+### GET: /ingredients
+Returns list of known ingredients
