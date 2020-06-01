@@ -5,9 +5,16 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Issier/PantryParserAPI/cors"
 	"github.com/Issier/PantryParserAPI/dao"
 	"github.com/Issier/PantryParserAPI/models"
 )
+
+func SetupRecipeHandlers() {
+	http.Handle("/recipes", cors.CorsHandler(http.HandlerFunc(CookBookRootHandler)))
+	http.Handle("/recipes/add", cors.CorsHandler(http.HandlerFunc(CookBookAddHandler)))
+	http.Handle("/recipes/", cors.CorsHandler(http.HandlerFunc(CookBookGetRecipeHandler)))
+}
 
 // CookBookRootHandler routes incoming requests from cookbook to appropriate methods
 func CookBookRootHandler(w http.ResponseWriter, r *http.Request) {

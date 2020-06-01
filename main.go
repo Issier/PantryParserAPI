@@ -7,10 +7,8 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/recipes", controllers.CookBookRootHandler)
-	http.HandleFunc("/recipes/add", controllers.CookBookAddHandler)
-	http.HandleFunc("/recipes/", controllers.CookBookGetRecipeHandler)
-	http.HandleFunc("/ingredients", controllers.GetIngredientsHandler)
+	controllers.SetupRecipeHandlers()
+	controllers.SetupIngredientHandlers()
 
 	http.ListenAndServe(":8080", nil)
 }
