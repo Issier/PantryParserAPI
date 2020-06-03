@@ -1,24 +1,33 @@
 package dao
 
 import (
+	"sync"
+
 	"github.com/Issier/PantryParserAPI/models"
 )
 
 var cookBook map[string]models.Recipe
+var cookBookLock = sync.RWMutex{}
 
 // SaveRecipe persists provided recipe
 func SaveRecipe(recipe models.Recipe) error {
+	cookBookLock.Lock()
+	defer cookBookLock.Unlock()
 	cookBook[recipe.Name] = recipe
 	return nil
 }
 
 // GetRecipe retrieves a recipe by the given key
 func GetRecipe(name string) models.Recipe {
+	cookBookLock.RLock()
+	defer cookBookLock.RUnlock()
 	return cookBook[name]
 }
 
 // GetCookbook returns the entire cookbook
 func GetCookbook() map[string]models.Recipe {
+	cookBookLock.RLock()
+	defer cookBookLock.RUnlock()
 	return cookBook
 }
 
@@ -61,7 +70,8 @@ func init() {
 			Description: "Delicious pan seared steak",
 		},
 		"Quick Chickpea and Spinach Stew": {
-			Name: "Quick Chickpea and Spinach Stew",
+			Name:        "Quick Chickpea and Spinach Stew",
+			Description: "A delicious vegetarian stew that will last for days",
 			Ingredients: []models.Ingredient{
 				{
 					Name:     "Can of Whole Tomatoes",
