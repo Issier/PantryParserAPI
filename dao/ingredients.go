@@ -10,10 +10,14 @@ var knownIngredients map[string]models.Ingredient
 var ingredientsLock = sync.RWMutex{}
 
 // GetIngredients return all known ingredients
-func GetIngredients() map[string]models.Ingredient {
+func GetIngredients() []models.Ingredient {
 	ingredientsLock.RLock()
 	defer ingredientsLock.RUnlock()
-	return knownIngredients
+	ingredients := []models.Ingredient{}
+	for _, ingredient := range knownIngredients {
+		ingredients = append(ingredients, ingredient)
+	}
+	return ingredients
 }
 
 func init() {
