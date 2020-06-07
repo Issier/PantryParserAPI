@@ -5,14 +5,14 @@ drop table if exists Recipe;
 
 create table if not exists Ingredient (
 	id int NOT NULL AUTO_INCREMENT,
-	ingredient_name varchar(30) NOT NULL,
+	ingredient_name varchar(30) NOT NULL unique,
     ingredient_category varchar(30) NOT NULL,
     primary key ( id )
 );
-
+	
 create table if not exists Recipe (
 	id int NOT NULL AUTO_INCREMENT,
-    recipe_name varchar(50) NOT NULL,
+    recipe_name varchar(50) NOT NULL unique,
     recipe_description varchar(200) NOT NULL,
     primary key ( id )
 );
@@ -22,7 +22,8 @@ create table CookBookEntry (
     ingredient_id int NOT NULL,
     ingredient_amount varchar(30),
     foreign key ( recipe_id ) REFERENCES Recipe(id),
-    foreign key ( ingredient_id ) REFERENCES Ingredient(id)
+    foreign key ( ingredient_id ) REFERENCES Ingredient(id),
+    primary key ( recipe_id, ingredient_id )
 );
 
 /* Starting Ingredients */

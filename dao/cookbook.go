@@ -1,19 +1,75 @@
 package dao
 
 import (
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
 	"sync"
 
 	"github.com/Issier/PantryParserAPI/models"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var cookBook map[string]models.Recipe
 var cookBookLock = sync.RWMutex{}
+var config configFile
+
+type configFile struct {
+	DBString string `json:"dbString"`
+}
+
+func init() {
+	confFile, err := os.Open("conf.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer confFile.Close()
+
+	decoder := json.NewDecoder(confFile)
+	config = configFile{}
+	err = decoder.Decode(&config)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
 
 // SaveRecipe persists provided recipe
 func SaveRecipe(recipe models.Recipe) error {
-	cookBookLock.Lock()
-	defer cookBookLock.Unlock()
-	cookBook[recipe.Name] = recipe
+	db, err := sql.Open("mysql", config.DBString)
+	defer db.Close()
+	if err != nil {
+		panic("Unable to connect to database")
+	}
+	conn, err := db.Begin()
+	if err != nil {
+		return errors.New("Unable to establish a transaction")
+	}
+	result, err := conn.Exec("insert into recipe (recipe_name, recipe_description) values (?, ?)", recipe.Name, recipe.Description)
+	if err != nil {
+		conn.Rollback()
+		return errors.New("Recipe with that name already exists")
+	}
+
+	recipeID, _ := result.LastInsertId()
+
+	if err != nil {
+		conn.Rollback()
+		return errors.New("Unable to query database")
+	}
+
+	for _, ingredient := range recipe.Ingredients {
+		ingredientRow := conn.QueryRow("select id from ingredient where ingredient_name=?", ingredient.Name)
+		var ingredientID int
+		ingredientRow.Scan(&ingredientID)
+		_, err = conn.Exec("insert into cookbookentry (recipe_id, ingredient_id) values (?, ?)", recipeID, ingredientID)
+		if err != nil {
+			conn.Rollback()
+			return errors.New("Recipe entry already exists")
+		}
+	}
+	conn.Commit()
 	return nil
 }
 
