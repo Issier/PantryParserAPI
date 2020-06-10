@@ -45,7 +45,12 @@ func CookBookAddHandler(w http.ResponseWriter, r *http.Request) {
 func CookBookGetRecipeHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		recipe := dao.GetRecipe(r.URL.Path[len("/recipes/"):])
+		recipe, err := dao.GetRecipe(r.URL.Path[len("/recipes/"):])
+		if err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+		} else if recipe.Name == "" {
+			w.WriteHeader(http.StatusNotFound)
+		}
 		json.NewEncoder(w).Encode(recipe)
 	}
 }

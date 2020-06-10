@@ -74,10 +74,29 @@ func SaveRecipe(recipe models.Recipe) error {
 }
 
 // GetRecipe retrieves a recipe by the given key
-func GetRecipe(name string) models.Recipe {
-	cookBookLock.RLock()
-	defer cookBookLock.RUnlock()
-	return cookBook[name]
+func GetRecipe(name string) (models.Recipe, error) {
+	conn, err := sql.Open("mysql", config.DBString)
+	defer conn.Close()
+	if err != nil {
+		panic("Unable to connect to database")
+	}
+	if err != nil {
+		return models.Recipe{}, errors.New("Unable to begin session")
+	}
+	recipeRows, err := conn.Query("select ingredient_name, ingredient_category, recipe_name, recipe_description from cookbookentry inner join recipe on recipe_id = recipe.id inner join ingredient on ingredient_id = ingredient.id where recipe.recipe_name = ?", name)
+	if err != nil {
+		return models.Recipe{}, errors.New("Unable to pull information")
+	}
+	recipeRows.Next()
+	recipe := models.Recipe{}
+	ingredient := models.Ingredient{}
+	recipeRows.Scan(&ingredient.Name, &ingredient.Category, &recipe.Name, &recipe.Description)
+	recipe.Ingredients = append(recipe.Ingredients, ingredient)
+	for recipeRows.Next() {
+		recipeRows.Scan(&ingredient.Name, &ingredient.Category)
+		recipe.Ingredients = append(recipe.Ingredients, ingredient)
+	}
+	return recipe, nil
 }
 
 // GetCookbook returns the entire cookbook
