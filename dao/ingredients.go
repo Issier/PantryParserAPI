@@ -1,30 +1,26 @@
 package dao
 
 import (
-	"sync"
+	"database/sql"
+	"errors"
 
 	"github.com/Issier/PantryParserAPI/models"
 )
 
-var knownIngredients map[string]models.Ingredient
-var ingredientsLock = sync.RWMutex{}
-
 // GetIngredients return all known ingredients
-func GetIngredients() []models.Ingredient {
-	ingredientsLock.RLock()
-	defer ingredientsLock.RUnlock()
+func GetIngredients() ([]models.Ingredient, error) {
+	conn, err := sql.Open("mysql", config.DBString)
+	defer conn.Close()
+	if err != nil {
+		return []models.Ingredient{}, errors.New("Unable to begin session")
+	}
+	rows, _ := conn.Query("select ingredient_name, ingredient_category from ingredient")
+
 	ingredients := []models.Ingredient{}
-	for _, ingredient := range knownIngredients {
+	for rows.Next() {
+		ingredient := models.Ingredient{}
+		rows.Scan(&ingredient.Name, &ingredient.Category)
 		ingredients = append(ingredients, ingredient)
 	}
-	return ingredients
-}
-
-func init() {
-	knownIngredients = map[string]models.Ingredient{}
-	for _, recipe := range GetCookbook() {
-		for _, ingredient := range recipe.Ingredients {
-			knownIngredients[ingredient.Name] = ingredient
-		}
-	}
+	return ingredients, nil
 }

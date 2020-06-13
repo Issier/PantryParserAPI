@@ -14,5 +14,6 @@ func SetupIngredientHandlers() {
 
 // GetIngredientsHandler returns a list of recognized ingredients
 func GetIngredientsHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(dao.GetIngredients())
+	ingredients, _ := dao.GetIngredients()
+	json.NewEncoder(w).Encode(ingredients)
 }
