@@ -118,6 +118,7 @@ func GetRecipesByIngredients(ingredients []string) (map[int][]models.Recipe, err
 		recipe := models.Recipe{}
 		var numberOccurences int
 		recipeRows.Scan(&recipe.Name, &recipe.Description, &numberOccurences)
+		recipe.Ingredients, _ = GetIngredientsByRecipeName(recipe.Name)
 		recipes[numberOccurences] = append(recipes[numberOccurences], recipe)
 	}
 	return recipes, nil
