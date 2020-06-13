@@ -20,11 +20,9 @@ func SetupRecipeHandlers() {
 func CookBookRootHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		if len(r.URL.Query().Get("ingredients")) > 0 {
-			cookBookGetRecipeByIngredients(w, r)
-		} else {
-			json.NewEncoder(w).Encode(dao.GetCookbook())
-		}
+		encoder := json.NewEncoder(w)
+		recipesGroupedByIngredientMatchCount, _ := dao.GetRecipesByIngredients(strings.Split(r.URL.Query().Get("ingredients"), ","))
+		encoder.Encode(recipesGroupedByIngredientMatchCount)
 	}
 }
 
@@ -52,28 +50,6 @@ func CookBookGetRecipeHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 		json.NewEncoder(w).Encode(recipe)
-	}
-}
-
-// CookBookGetRecipeByIngredients returns a map of number of matching ingredients to arrays of recipes
-func cookBookGetRecipeByIngredients(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		ingredients := r.URL.Query().Get("ingredients")
-		recipesIncludingContent := map[int][]models.Recipe{}
-		cookBook := dao.GetCookbook()
-		for _, recipe := range cookBook {
-			matchingIngredients := 0
-			for _, ingredient := range recipe.Ingredients {
-				if strings.Contains(ingredients, ingredient.Name) {
-					matchingIngredients++
-				}
-			}
-			if matchingIngredients > 0 {
-				recipesIncludingContent[matchingIngredients] = append(recipesIncludingContent[matchingIngredients], recipe)
-			}
-		}
-		json.NewEncoder(w).Encode(recipesIncludingContent)
 	}
 }
 

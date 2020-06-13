@@ -78,9 +78,6 @@ func GetRecipe(name string) (models.Recipe, error) {
 	conn, err := sql.Open("mysql", config.DBString)
 	defer conn.Close()
 	if err != nil {
-		panic("Unable to connect to database")
-	}
-	if err != nil {
 		return models.Recipe{}, errors.New("Unable to begin session")
 	}
 	recipeRows, err := conn.Query("select ingredient_name, ingredient_category, recipe_name, recipe_description from cookbookentry inner join recipe on recipe_id = recipe.id inner join ingredient on ingredient_id = ingredient.id where recipe.recipe_name = ?", name)
@@ -97,6 +94,36 @@ func GetRecipe(name string) (models.Recipe, error) {
 		recipe.Ingredients = append(recipe.Ingredients, ingredient)
 	}
 	return recipe, nil
+}
+
+func GetRecipesByIngredients(ingredients []string) (map[int][]models.Recipe, error) {
+	conn, err := sql.Open("mysql", config.DBString)
+	defer conn.Close()
+	if err != nil || len(ingredients) == 0 {
+		return map[int][]models.Recipe{}, errors.New("Unable to begin session")
+	}
+	matchingIngredientString := "ingredient_name = ?"
+	for range ingredients[1:] {
+		matchingIngredientString += " OR ingredient_name = ?"
+	}
+	interfaces := make([]interface{}, len(ingredients))
+	for i, ingredient := range ingredients {
+		interfaces[i] = ingredient
+	}
+	recipeRows, err := conn.Query("select recipe_name, recipe_description, COUNT(recipe_name) "+
+		"from cookbookentry inner join recipe on recipe_id = recipe.id inner join ingredient "+
+		"on ingredient_id = ingredient.id where "+matchingIngredientString+" group by recipe_name", interfaces...)
+	if err != nil {
+		return map[int][]models.Recipe{}, errors.New("Unable to pull information")
+	}
+	recipes := make(map[int][]models.Recipe)
+	for recipeRows.Next() {
+		recipe := models.Recipe{}
+		var numberOccurences int
+		recipeRows.Scan(&recipe.Name, &recipe.Description, &numberOccurences)
+		recipes[numberOccurences] = append(recipes[numberOccurences], recipe)
+	}
+	return recipes, nil
 }
 
 // GetCookbook returns the entire cookbook
