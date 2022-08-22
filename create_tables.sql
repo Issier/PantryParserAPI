@@ -4,17 +4,15 @@ drop table if exists Recipe;
 
 
 create table if not exists Ingredient (
-	id int NOT NULL AUTO_INCREMENT,
+	id serial NOT NULL primary key,
 	ingredient_name varchar(30) NOT NULL unique,
-    ingredient_category varchar(30) NOT NULL,
-    primary key ( id )
+    ingredient_category varchar(30) NOT NULL
 );
 	
 create table if not exists Recipe (
-	id int NOT NULL AUTO_INCREMENT,
+	id serial NOT NULL primary key,
     recipe_name varchar(50) NOT NULL unique,
-    recipe_description varchar(200) NOT NULL,
-    primary key ( id )
+    recipe_description varchar(200) NOT NULL
 );
 
 create table CookBookEntry (
@@ -46,7 +44,7 @@ insert into ingredient (ingredient_name, ingredient_category) values ('Sherry Vi
 
 /* Starting Recipes */
 insert into recipe (recipe_name, recipe_description) 
-	values ('Grilled Cheese', 'Grilled cheese so delicious you\'ll want to eat it');
+	values ('Grilled Cheese', 'Grilled cheese so delicious you will want to eat it');
 insert into recipe (recipe_name, recipe_description) 
 	values ('Pan Steak', 'Delicious pan seared steak');
 insert into recipe (recipe_name, recipe_description) 
