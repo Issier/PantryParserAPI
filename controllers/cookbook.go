@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -34,7 +35,10 @@ func CookBookAddHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
-		dao.SaveRecipe(recipe)
+		err = dao.SaveRecipe(recipe)
+		if err != nil {
+			fmt.Println(err)
+		}
 		json.NewEncoder(w).Encode(recipe)
 	}
 }

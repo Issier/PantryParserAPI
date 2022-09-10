@@ -1,12 +1,12 @@
 package dao
 
 import (
-	"database/sql"
+	"context"
 	"errors"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/Issier/PantryParserAPI/models"
-	_ "github.com/lib/pq"
-
 )
 
 // GetIngredients return all known ingredients
@@ -20,17 +20,17 @@ func GetIngredientsByRecipeName(name string) ([]models.Ingredient, error) {
 }
 
 func getIngredients(name string) ([]models.Ingredient, error) {
-	conn, err := sql.Open("postgres", config.DBString)
+	conn, err := pgxpool.Connect(context.Background(), config.DBString)
 	defer conn.Close()
 	if err != nil {
 		return []models.Ingredient{}, errors.New("Unable to begin session")
 	}
 
-	var rows *sql.Rows
+	var rows pgx.Rows
 	if name == "" {
-		rows, _ = conn.Query("select ingredient_name, ingredient_category from ingredient")
+		rows, _ = conn.Query(context.Background(), "select ingredient_name, ingredient_category from ingredient")
 	} else {
-		rows, _ = conn.Query("select ingredient_name, ingredient_category from cookbookentry inner join ingredient on ingredient_id = ingredient.id inner join recipe on recipe_id = recipe.id  where recipe_name = $1", name)
+		rows, _ = conn.Query(context.Background(), "select ingredient_name, ingredient_category from cookbookentry inner join ingredient on ingredient_id = ingredient.id inner join recipe on recipe_id = recipe.id  where recipe_name = $1", name)
 	}
 
 	ingredients := []models.Ingredient{}
