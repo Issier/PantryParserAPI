@@ -12,7 +12,8 @@ create table if not exists Ingredient (
 create table if not exists Recipe (
 	id serial NOT NULL primary key,
     recipe_name varchar(50) NOT NULL unique,
-    recipe_description varchar(200) NOT NULL
+    recipe_description varchar(200) NOT NULL,
+    recipe_link varchar(100)
 );
 
 create table CookBookEntry (

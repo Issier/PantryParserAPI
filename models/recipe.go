@@ -5,6 +5,7 @@ type Recipe struct {
 	Name        string       `json:"name"`
 	Ingredients []Ingredient `json:"ingredients"`
 	Description string       `json:"description"`
+	Link        string       `json:"link"`
 }
 
 // Ingredient defines the characteristics of an ingredient in a recipe
