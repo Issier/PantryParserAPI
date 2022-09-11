@@ -14,6 +14,29 @@ func GetIngredients() ([]models.Ingredient, error) {
 	return getIngredients("")
 }
 
+// SaveRecipe persists provided recipe
+func SaveIngredient(ingredient models.Ingredient) error {
+	conn, err := pgxpool.Connect(context.Background(), config.DBString)
+	if err != nil {
+		return errors.New("unable to establish a transaction")
+	}
+	defer conn.Close()
+
+	tx, err := conn.Begin(context.Background())
+	if err != nil {
+		return errors.New("unable to begin transaction")
+	}
+	defer tx.Rollback(context.Background())
+
+	_, err = tx.Exec(context.Background(), "insert into ingredient (ingredient_name, ingredient_category) values ($1, $2)", ingredient.Name, ingredient.Category)
+	if err != nil {
+		return errors.New("recipe with that name already exists")
+	}
+
+	tx.Commit(context.Background())
+	return nil
+}
+
 // GetIngredientsByRecipeName returns ingredients used in provided recipe
 func GetIngredientsByRecipeName(name string) ([]models.Ingredient, error) {
 	return getIngredients(name)
